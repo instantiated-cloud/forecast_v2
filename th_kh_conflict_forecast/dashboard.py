@@ -46,7 +46,8 @@ def run_pipeline():
 # ---------------------------------------------------------
 def main():
 
-    st.title(":red[_(Prototype)_] Simulated Thailand–Cambodia Conflict Forecast Dashboard :green[V2]")
+    st.title(":red[_(Prototype)_]")
+    st.title("Simulated Thailand–Cambodia Conflict Forecast Dashboard :green[V2]")
 
     # -----------------------------------------------------
     # Load data
