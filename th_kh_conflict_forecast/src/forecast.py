@@ -12,17 +12,17 @@ BASE_DIR = get_base_dir()
 OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
 
 # ---------------------------------------------------------
-# Load model + full dataset (your feature dataset)
+# Load model + feature dataset
 # ---------------------------------------------------------
 def load_inputs():
     model_path = os.path.join(OUTPUTS_DIR, "model_latest.pkl")
-    data_path = os.path.join(OUTPUTS_DIR, "forecast_latest.csv")  # <-- your full dataset
+    data_path = os.path.join(OUTPUTS_DIR, "model_input_latest.csv")  # <-- FIXED
 
     model = joblib.load(model_path)
     df = pd.read_csv(data_path, parse_dates=["date"])
 
     print(f"[forecast] Loaded model → {model_path}")
-    print(f"[forecast] Loaded dataset → {data_path}")
+    print(f"[forecast] Loaded feature dataset → {data_path}")
     print(f"[forecast] Total rows: {len(df)}")
 
     return model, df
@@ -45,22 +45,13 @@ def select_forecast_rows(df):
 def run_forecast():
     model, df = load_inputs()
 
-    # Identify feature columns
-    drop_cols = [
-        "segment_id",
-        "date",
-        "conflict",
-        "conflict_prob"  # from previous runs
-    ]
+    drop_cols = ["segment_id", "date", "conflict", "conflict_prob"]
     feature_cols = [c for c in df.columns if c not in drop_cols]
 
-    # Select only the rows to forecast
     forecast_df = select_forecast_rows(df)
 
-    # Predict conflict probability
     forecast_df["conflict_prob"] = model.predict_proba(forecast_df[feature_cols])[:, 1]
 
-    # Save forecast-only output
     out_path = os.path.join(OUTPUTS_DIR, "forecast_latest.csv")
     forecast_df.to_csv(out_path, index=False)
 
