@@ -46,7 +46,7 @@ def run_pipeline():
 # ---------------------------------------------------------
 def main():
 
-    st.title("Thailand–Cambodia Conflict Forecast Dashboard")
+    st.title("Prototype: Thailand–Cambodia Conflict Forecast Dashboard")
 
     # -----------------------------------------------------
     # Load data
