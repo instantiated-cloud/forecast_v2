@@ -202,27 +202,60 @@ def main():
             seg_df["conflict"],
             marker="o",
             color="gray",
-            label="Historical Conflict"
+            label="Historical Weeks"
+        )
+
+        # Highlight conflict == 1 points
+        conflict_points = seg_df[seg_df["conflict"] == 1]
+
+        ax.scatter(
+            conflict_points["date"],
+            conflict_points["conflict"],
+            color="blue",        # <-- choose your highlight color
+            s=60,               # <-- size of the marker
+            zorder=5,           # <-- draw on top
+            label="Conflict"
         )
 
         # Forecast probability
-        ax.plot(
+        ax.scatter(
             seg_df["date"],
             seg_df["forecast"],
-            marker="o",
-            color="red",
+            color="red",      # forecast color
+            # edgecolors="black",  # outline for visibility
+            s=60,                # marker size
+            zorder=4,
             label="Forecast Probability"
         )
+
+        # Add probability labels above each forecast point (as percent)
+        for x, y in zip(seg_df["date"], seg_df["forecast"]):
+            ax.text(
+                x,
+                y + 0.03,
+                f"{y*100:.0f}% probability",   # <-- percent + word
+                fontsize=8,
+                color="red",
+                ha="center",
+                va="bottom",
+                bbox=dict(
+                    facecolor="white",
+                    edgecolor="none",
+                    alpha=0.7,
+                    boxstyle="round,pad=0.15"
+                )
+            )
 
         # Add vertical markers for historical conflict events
         levels = 6  # number of stagger levels
 
         for i, (_, row) in enumerate(conflict_events.iterrows()):
+            # Red dashed vertical line
             ax.axvline(
                 row["date"],
-                color="red",
+                color="blue",
                 linestyle="--",
-                alpha=0.5
+                alpha=0.7
             )
 
             # Center of the plot
@@ -232,19 +265,26 @@ def main():
             level = i % levels
 
             # Spread levels evenly above/below center
-            # Example: -0.25, -0.15, -0.05, +0.05, +0.15, +0.25
-            offset = (level - (levels - 1) / 2) * 0.10
+            offset = (level - (levels - 1) / 2) * 0.12
 
+            # Blue date label with white background
             ax.text(
                 row["date"],
                 y_center + offset,
                 row["date"].strftime("%Y-%m-%d"),
                 rotation=0,
                 fontsize=8,
-                color="red",
+                color="blue",          # <-- blue text
                 ha="center",
-                va="center"
+                va="center",
+                bbox=dict(
+                    facecolor="white",   # <-- white background
+                    edgecolor="none",
+                    alpha=0.8,
+                    boxstyle="round,pad=0.2"
+                )
             )
+
 
 
         # Move legend outside to the right
@@ -257,6 +297,8 @@ def main():
 
         plt.xticks(rotation=45)
 
+        ax.set_yticks([0, 1])
+        
         st.pyplot(fig)
 
 
