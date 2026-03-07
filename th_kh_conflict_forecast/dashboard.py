@@ -70,9 +70,8 @@ def main():
     with tab_map:
         st.header("Conflict Risk Map")
 
-        st.write("Unique dates in forecast_df:", forecast_df["date"].unique()[:20])
-        st.write("Number of unique dates:", len(forecast_df["date"].unique()))
-
+        #st.write("Unique dates in forecast_df:", forecast_df["date"].unique()[:20])
+        #st.write("Number of unique dates:", len(forecast_df["date"].unique()))
 
         # Determine forecast week(s) ONLY
         forecast_dates = forecast_df["date"].dropna().unique()
