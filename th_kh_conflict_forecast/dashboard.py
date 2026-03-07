@@ -50,6 +50,28 @@ def main():
     st.title("Simulated Thailand–Cambodia Conflict Forecast Dashboard")
     st.subheader(":red[_Prototype v2.0_]")
 
+    st.markdown("""
+    <style>
+
+        /* MAIN APP BACKGROUND */
+        div[data-testid="stAppViewContainer"] {
+            background-color: #fafafa;
+        }
+
+        /* OPTIONAL: SIDEBAR BACKGROUND */
+        section[data-testid="stSidebar"] {
+            background-color: #e6e6e6;
+        }
+
+        /* OPTIONAL: TABS BACKGROUND */
+        div[data-baseweb="tab-list"] {
+            background-color: #fafafa;
+        }
+
+    </style>
+    """, unsafe_allow_html=True)
+
+
     # -----------------------------------------------------
     # Load data
     # -----------------------------------------------------
