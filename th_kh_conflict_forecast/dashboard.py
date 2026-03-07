@@ -87,9 +87,16 @@ def main():
             folium.map.Marker(
                 [row["lat"] + 0.02, row["lon"]],
                 icon=folium.DivIcon(
-                    html=f"""<div style="font-size:12px; font-weight:bold; text-align:center;">
-                            {row['segment_id']}
-                            </div>"""
+                    html=f"""
+                    <div style="
+                        font-size: 12px;
+                        font-family: Arial, sans-serif;
+                        text-align: center;
+                        line-height: 14px;
+                        ">
+                        {row['segment_id']}
+                    </div>
+                    """
                 )
             ).add_to(m)
 
@@ -97,11 +104,19 @@ def main():
             folium.map.Marker(
                 [row["lat"] - 0.02, row["lon"]],
                 icon=folium.DivIcon(
-                    html=f"""<div style="font-size:11px; color:#333; text-align:center;">
-                            {row['conflict_prob']:.2f}
-                            </div>"""
+                    html=f"""
+                    <div style="
+                        font-size: 11px;
+                        font-family: Arial, sans-serif;
+                        text-align: center;
+                        line-height: 14px;
+                        ">
+                        {row['conflict_prob']:.2f}
+                    </div>
+                    """
                 )
             ).add_to(m)
+
 
 
         st_folium(m, width=700, height=500)
