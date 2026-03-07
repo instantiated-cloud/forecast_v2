@@ -70,6 +70,16 @@ def main():
     with tab_map:
         st.header("Conflict Risk Map")
 
+        # Determine forecast date range
+        if "date" in forecast_df.columns:
+            min_date = forecast_df["date"].min().strftime("%Y-%m-%d")
+            max_date = forecast_df["date"].max().strftime("%Y-%m-%d")
+
+            if min_date == max_date:
+                st.subheader(f"Forecast for: {min_date}")
+            else:
+                st.subheader(f"Forecast Range: {min_date} → {max_date}")
+
         # Base map
         m = folium.Map(location=[14.3, 104.8], zoom_start=7)
 
@@ -88,7 +98,7 @@ def main():
         # Add markers
         for _, row in merged.iterrows():
 
-            # Popup with name above, risk below — centered, non-bold, clean
+            # Popup with name, risk, and date — centered, clean, non-bold
             popup_html = f"""
             <div style="
                 font-family: Arial, sans-serif;
@@ -98,7 +108,8 @@ def main():
                 font-weight: normal;
             ">
                 {row['segment_id']}<br>
-                Risk: {row['conflict_prob']:.2f}
+                Risk: {row['conflict_prob']:.2f}<br>
+                Date: {row['date'].strftime('%Y-%m-%d')}
             </div>
             """
 
@@ -113,7 +124,7 @@ def main():
                 popup=popup_html
             ).add_to(m)
 
-        # Add a legend
+        # Add legend
         legend_html = """
         <div style="
             position: fixed;
@@ -139,6 +150,7 @@ def main():
 
         # Render map
         st_folium(m, width=700, height=500)
+
 
 
     # -----------------------------------------------------
