@@ -6,7 +6,7 @@ import folium
 from streamlit_folium import st_folium
 import matplotlib.pyplot as plt
 
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 
 # ---------------------------------------------------------
 # Resolve absolute paths safely for Streamlit Cloud
