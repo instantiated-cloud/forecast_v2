@@ -156,6 +156,11 @@ def main():
     features.to_csv("data/processed/merged_features_lagged.csv", index=False)
     print(f"Feature dataset saved: {len(features)} rows")
 
+    #### === NEW STEP: Save full model input for analytics ===
+    model_input_path = "outputs/model_input_latest.csv"
+    features.to_csv(model_input_path, index=False)
+    print(f"Model input saved: {model_input_path}")
+
     print("\n=== STEP 5: Training model ===")
     train(features)
 

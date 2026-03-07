@@ -226,103 +226,158 @@ def main():
         st_folium(m, width=700, height=500)
 
 
+    FEATURE_LABELS = {
 
-    # -----------------------------------------------------
-    # ANALYTICS TAB
+    # --- CORE CONFLICT VARIABLES ---
+    "conflict": "Conflict Event (0 = no, 1 = yes)",
+    "conflict_lag1": "Conflict Event (1-week lag)",
+    "conflict_lag2": "Conflict Event (2-week lag)",
+    "conflict_lag4": "Conflict Event (4-week lag)",
+
+    # --- HUMAN IMPACT ---
+    "fatalities": "Fatalities (count)",
+    "injuries": "Injuries (count)",
+    "civilian_casualties": "Civilian Casualties (count)",
+    "displaced_persons": "Displaced Persons (count)",
+    "aid_deliveries": "Aid Deliveries (count)",
+
+    # --- MILITARY ACTIVITY ---
+    "troop_movements": "Troop Movements (count)",
+    "troop_movements_lag1": "Troop Movements (1-week lag)",
+    "troop_movements_lag2": "Troop Movements (2-week lag)",
+    "troop_movements_lag4": "Troop Movements (4-week lag)",
+
+    "exercises": "Military Exercises (count)",
+    "drone_activity": "Drone Activity (count)",
+    "landmine_incidents": "Landmine Incidents (count)",
+    "checkpoint_closures": "Checkpoint Closures (count)",
+
+    # --- MEDIA & SENTIMENT ---
+    "article_count": "News Article Count (weekly)",
+    "sentiment_score": "Sentiment Score (−1 to +1)",
+    "sentiment_score_lag1": "Sentiment Score (1-week lag)",
+    "sentiment_score_lag2": "Sentiment Score (2-week lag)",
+    "sentiment_score_lag4": "Sentiment Score (4-week lag)",
+
+    "keyword_border": "Keyword: 'border' Mentions (count)",
+    "keyword_temple": "Keyword: 'temple' Mentions (count)",
+
+    # --- TRADE & ECONOMIC ACTIVITY ---
+    "trade_value": "Trade Value (USD or normalized)",
+    "trade_value_lag1": "Trade Value (1-week lag)",
+    "trade_value_lag2": "Trade Value (2-week lag)",
+    "trade_value_lag4": "Trade Value (4-week lag)",
+
+    "truck_crossings": "Truck Crossings (count)",
+    "migrant_flow": "Migrant Flow (count)",
+    "market_closures": "Market Closures (count)",
+
+    # --- EVENT TYPE FLAGS (binary) ---
+    "event_type_border_incident": "Event Type: Border Incident (0/1)",
+    "event_type_none": "Event Type: None (0/1)",
+    "event_type_skirmish": "Event Type: Skirmish (0/1)",
+
+    # --- SOURCE FLAGS (binary) ---
+    "source_military_report": "Source: Military Report (0/1)",
+    "source_ngo": "Source: NGO Report (0/1)",
+    "source_none": "Source: No Source (0/1)",
+
+    # --- MODEL OUTPUT (not used in feature explorer) ---
+    "conflict_prob": "Model Forecast Probability (0–1)",
+    }
+
+    ##### -----------------------------------------------------
+    # ANALYTICS TAB (Refactored)
     # -----------------------------------------------------
     with tab_analytics:
-        st.header("Segment Timeline")
+        st.header("📊 Segment Analytics Dashboard")
 
-        # Load historical dataset
+        # -------------------------------------------------
+        # Load historical + forecast data
+        # -------------------------------------------------
         history_path = os.path.join(OUTPUTS_DIR, "model_input_latest.csv")
         history_df = pd.read_csv(history_path, parse_dates=["date"])
 
-        # Load forecast dataset
         forecast_path = os.path.join(OUTPUTS_DIR, "forecast_latest.csv")
         forecast_df = pd.read_csv(forecast_path, parse_dates=["date"])
-
-        # Keep only needed columns
-        history_df = history_df[["date", "segment_id", "conflict"]]
-        forecast_df = forecast_df[["date", "segment_id", "conflict_prob"]]
         forecast_df = forecast_df.rename(columns={"conflict_prob": "forecast"})
 
-        # Merge history + forecast
-        combined = history_df.merge(
-            forecast_df,
-            on=["date", "segment_id"],
-            how="outer"
-        ).sort_values("date")
+        # -------------------------------------------------
+        # Identify feature columns
+        # -------------------------------------------------
+        feature_cols = [
+            c for c in history_df.columns
+            if c not in ["date", "segment_id", "conflict"]
+        ]
 
+        # -------------------------------------------------
         # Segment selector
-        segment_list = combined["segment_id"].unique()
+        # -------------------------------------------------
+        segment_list = sorted(history_df["segment_id"].unique())
         segment = st.selectbox("Select segment:", segment_list)
 
-        seg_df = combined[combined["segment_id"] == segment]
+        seg_hist = history_df[history_df["segment_id"] == segment].sort_values("date")
+        seg_fore = forecast_df[forecast_df["segment_id"] == segment].sort_values("date")
 
-        # Identify historical conflict events
-        conflict_events = seg_df[seg_df["conflict"] == 1]
+        # -------------------------------------------------
+        # 1️⃣ TIMELINE: Conflict + Forecast
+        # -------------------------------------------------
+        st.subheader("📈 Conflict Timeline & Forecast")
 
         fig, ax = plt.subplots(figsize=(10, 4))
 
-        # Historical conflict
+        # Historical conflict (0/1)
         ax.plot(
-            seg_df["date"],
-            seg_df["conflict"],
+            seg_hist["date"],
+            seg_hist["conflict"],
             marker="o",
             color="gray",
-            label="Historical Weeks"
+            label="Historical Conflict"
         )
 
-        # Highlight conflict == 1 points
-        conflict_points = seg_df[seg_df["conflict"] == 1]
-
+        # Highlight conflict events
+        conflict_points = seg_hist[seg_hist["conflict"] == 1]
         ax.scatter(
             conflict_points["date"],
             conflict_points["conflict"],
-            color="blue",        # <-- choose your highlight color
-            s=60,               # <-- size of the marker
-            zorder=5,           # <-- draw on top
-            label="Conflict"
+            color="blue",
+            s=60,
+            zorder=5,
+            label="Conflict Event"
         )
 
         # Forecast probability
         ax.scatter(
-            seg_df["date"],
-            seg_df["forecast"],
-            color="red",      # forecast color
-            # edgecolors="black",  # outline for visibility
-            s=60,                # marker size
+            seg_fore["date"],
+            seg_fore["forecast"],
+            color="red",
+            s=60,
             zorder=4,
             label="Forecast Probability"
         )
 
-        # Add probability labels above each forecast point (as percent)
-        for x, y in zip(seg_df["date"], seg_df["forecast"]):
+        # Probability labels
+        for x, y in zip(seg_fore["date"], seg_fore["forecast"]):
             ax.text(
-                x,
-                y + 0.03,
-                f"{y*100:.0f}% probability",   # <-- percent + word
+                x, y + 0.03,
+                f"{y*100:.0f}%",
                 fontsize=8,
                 color="red",
                 ha="center",
                 va="bottom",
-                bbox=dict(
-                    facecolor="white",
-                    edgecolor="none",
-                    alpha=0.7,
-                    boxstyle="round,pad=0.15"
-                )
+                bbox=dict(facecolor="white", alpha=0.7, edgecolor="none")
             )
 
+        
         # Add vertical markers for historical conflict events
         levels = 6  # number of stagger levels
 
-        for i, (_, row) in enumerate(conflict_events.iterrows()):
-            # Red dashed vertical line
+        for i, (_, row) in enumerate(conflict_points.iterrows()):
+            # Blue dashed vertical line
             ax.axvline(
                 row["date"],
                 color="blue",
-                linestyle="--",
+                linestyle=(0, (5, 10)),
                 alpha=0.7
             )
 
@@ -353,21 +408,94 @@ def main():
                 )
             )
 
-
-
-        # Move legend outside to the right
-        ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-
         ax.set_title(f"Timeline for {segment}")
         ax.set_xlabel("Date")
         ax.set_ylabel("Conflict / Probability")
         ax.grid(True, linestyle="--", alpha=0.4)
-
-        plt.xticks(rotation=45)
-
         ax.set_yticks([0, 1])
 
+        ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+        plt.xticks(rotation=45)
+
         st.pyplot(fig)
+
+        # -------------------------------------------------
+        # 2️⃣ FEATURE EXPLORER (Clean, no probability)
+        # -------------------------------------------------
+        st.subheader("🔍 Feature Explorer")
+
+        if len(feature_cols) == 0:
+            st.info("No feature columns found in model_input_latest.csv")
+        else:
+            feature_choice = st.selectbox("Choose a feature to explore:", feature_cols)
+
+            # Human-readable scale label
+            y_label = FEATURE_LABELS.get(
+                feature_choice,
+                f"Feature Value ({feature_choice})"
+            )
+
+            fig2, ax2 = plt.subplots(figsize=(10, 4))
+
+            # Feature trend
+            ax2.plot(
+                seg_hist["date"],
+                seg_hist[feature_choice],
+                color="purple",
+                marker="o",
+                label=f"{feature_choice}"
+            )
+
+            # Conflict event markers
+            conflict_dates = seg_hist[seg_hist["conflict"] == 1]["date"]
+            for d in conflict_dates:
+                ax2.axvline(d, color="blue", linestyle=(0, (5, 10)), alpha=0.6)
+
+            # Title + labels
+            ax2.set_title(f"{feature_choice} vs Conflict — {segment}")
+            ax2.set_xlabel("Date")
+            ax2.set_ylabel(y_label, fontsize=10)
+            ax2.grid(True, linestyle="--", alpha=0.4)
+
+            # Legend box
+            legend = ax2.legend(
+                loc="upper left",
+                bbox_to_anchor=(1.02, 1),
+                frameon=True,
+                facecolor="white",
+                edgecolor="gray"
+            )
+            legend.get_frame().set_alpha(0.9)
+
+            plt.xticks(rotation=45)
+            st.pyplot(fig2)
+
+
+
+        # # -------------------------------------------------
+        # # 3️⃣ MULTI-SEGMENT COMPARISON (Optional but powerful)
+        # # -------------------------------------------------
+        # st.subheader("📌 Multi-Segment Comparison")
+
+        # compare_feature = st.selectbox(
+        #     "Choose a feature to compare across segments:",
+        #     feature_cols
+        # )
+
+        # fig3, ax3 = plt.subplots(figsize=(10, 4))
+
+        # for seg in segment_list:
+        #     df_seg = history_df[history_df["segment_id"] == seg].sort_values("date")
+        #     ax3.plot(df_seg["date"], df_seg[compare_feature], label=seg, alpha=0.6)
+
+        # ax3.set_title(f"{compare_feature} Across All Segments")
+        # ax3.set_xlabel("Date")
+        # ax3.set_ylabel(compare_feature)
+        # ax3.grid(True, linestyle="--", alpha=0.4)
+        # ax3.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+
+        # plt.xticks(rotation=45)
+        # st.pyplot(fig3)
 
 
     # -----------------------------------------------------
