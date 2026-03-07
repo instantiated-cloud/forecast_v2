@@ -70,58 +70,76 @@ def main():
     with tab_map:
         st.header("Conflict Risk Map")
 
+        # Base map
         m = folium.Map(location=[14.3, 104.8], zoom_start=7)
+
+        # Merge forecast + segment metadata
         merged = forecast_df.merge(segments_df, on="segment_id", how="left")
 
+        # Color scale for risk
+        def risk_color(p):
+            if p < 0.2:
+                return "green"
+            elif p < 0.5:
+                return "orange"
+            else:
+                return "red"
+
+        # Add markers
         for _, row in merged.iterrows():
+
+            # Popup with name above, risk below — centered, non-bold, clean
+            popup_html = f"""
+            <div style="
+                font-family: Arial, sans-serif;
+                font-size: 13px;
+                line-height: 18px;
+                text-align: center;
+                font-weight: normal;
+            ">
+                {row['segment_id']}<br>
+                Risk: {row['conflict_prob']:.2f}
+            </div>
+            """
+
             folium.CircleMarker(
                 location=[row["lat"], row["lon"]],
                 radius=8,
-                color="red",
+                color=risk_color(row["conflict_prob"]),
                 fill=True,
-                fill_opacity=row["conflict_prob"],
-                popup=f"{row['segment_id']}: {row['conflict_prob']:.2f}"
+                fill_color=risk_color(row["conflict_prob"]),
+                fill_opacity=0.8,
+                tooltip=f"{row['segment_id']} — {row['conflict_prob']:.2f}",
+                popup=popup_html
             ).add_to(m)
 
-            # Name above
-            folium.map.Marker(
-                [row["lat"] + 0.02, row["lon"]],
-                icon=folium.DivIcon(
-                    html=f"""
-                    <div style="
-                        font-size: 16px;
-                        font-family: Arial, sans-serif;
-                        font-weight: normal;
-                        text-align: center;
-                        line-height: 14px;
-                        ">
-                        {row['segment_id']}
-                    </div>
-                    """
-                )
-            ).add_to(m)
+        # Add a legend
+        legend_html = """
+        <div style="
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 150px;
+            background-color: white;
+            border: 2px solid grey;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 13px;
+            font-family: Arial, sans-serif;
+            z-index: 9999;
+        ">
+            <b>Risk Levels</b><br>
+            <span style="color: green;">●</span> Low (0.00–0.19)<br>
+            <span style="color: orange;">●</span> Medium (0.20–0.49)<br>
+            <span style="color: red;">●</span> High (0.50+)
+        </div>
+        """
 
-            # Number below
-            folium.map.Marker(
-                [row["lat"] - 0.02, row["lon"]],
-                icon=folium.DivIcon(
-                    html=f"""
-                    <div style="
-                        font-size: 14px;
-                        font-family: Arial, sans-serif;
-                        font-weight: normal;
-                        text-align: center;
-                        line-height: 14px;
-                        ">
-                        {row['conflict_prob']:.2f}
-                    </div>
-                    """
-                )
-            ).add_to(m)
+        m.get_root().html.add_child(folium.Element(legend_html))
 
-
-
+        # Render map
         st_folium(m, width=700, height=500)
+
 
     # -----------------------------------------------------
     # ANALYTICS TAB
@@ -153,7 +171,7 @@ def main():
     # MODEL INSIGHTS TAB
     # -----------------------------------------------------
     with tab_insights:
-        st.header("Simulated Model Insights")
+        st.header("Model Insights")
 
         # Paths
         fi_csv = os.path.join(OUTPUTS_DIR, "feature_importance.csv")
@@ -169,7 +187,7 @@ def main():
                 fi_df = pd.read_csv(fi_csv)
 
                 if fi_df.empty:
-                    st.warning("Feature importance CSV is empty.")
+                    st.warning("Simulated Feature importance CSV is empty.")
                 else:
                     st.subheader("Feature Importance (CSV)")
                     fig3, ax3 = plt.subplots(figsize=(8, 6))
