@@ -117,21 +117,42 @@ def main():
     with tab_insights:
         st.header("Model Insights")
 
-        # Feature importance file (optional)
-        fi_path = os.path.join(OUTPUTS_DIR, "feature_importance.csv")
+        # Paths
+        fi_csv = os.path.join(OUTPUTS_DIR, "feature_importance.csv")
+        fi_png = os.path.join(OUTPUTS_DIR, "feature_importance.png")
 
-        if os.path.exists(fi_path):
-            fi_df = pd.read_csv(fi_path)
+        # Debug info (remove later)
+        st.write("Looking for CSV:", fi_csv, "→", os.path.exists(fi_csv))
+        st.write("Looking for PNG:", fi_png, "→", os.path.exists(fi_png))
 
-            st.subheader("Feature Importance")
-            fig3, ax3 = plt.subplots(figsize=(8, 6))
-            fi_df.sort_values("importance", ascending=True).plot(
-                x="feature", y="importance", kind="barh", ax=ax3, color="steelblue"
-            )
-            st.pyplot(fig3)
+        # --- CASE 1: CSV exists (new pipeline) ---
+        if os.path.exists(fi_csv):
+            try:
+                fi_df = pd.read_csv(fi_csv)
+
+                if fi_df.empty:
+                    st.warning("Feature importance CSV is empty.")
+                else:
+                    st.subheader("Feature Importance (CSV)")
+                    fig3, ax3 = plt.subplots(figsize=(8, 6))
+                    fi_df.sort_values("importance", ascending=True).plot(
+                        x="feature", y="importance", kind="barh", ax=ax3, color="steelblue"
+                    )
+                    st.pyplot(fig3)
+
+            except Exception as e:
+                st.error(f"Error loading feature importance CSV: {e}")
+
+        # --- CASE 2: PNG exists (old pipeline) ---
+        elif os.path.exists(fi_png):
+            st.subheader("Feature Importance (PNG)")
+            st.image(fi_png, caption="Feature Importance", use_column_width=True)
+
+        # --- CASE 3: Nothing found ---
         else:
-            st.info("Feature importance file not found. Generate it in the pipeline.")
+            st.info("No feature importance file found. Run the pipeline first.")
 
+        # Model summary
         st.subheader("Model Summary")
         st.write("""
         - The model is a Random Forest classifier.
