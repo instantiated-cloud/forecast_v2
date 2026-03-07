@@ -161,7 +161,7 @@ def main():
     # -----------------------------------------------------
     # ANALYTICS TAB
     # -----------------------------------------------------
-    with tab_timeline:
+    with tab_analytics:
         st.header("Segment Timeline")
 
         # Load historical dataset
