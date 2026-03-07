@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 # ---------------------------------------------------------
-# Resolve paths
+# Resolve absolute paths
 # ---------------------------------------------------------
 def get_base_dir():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -12,7 +12,7 @@ BASE_DIR = get_base_dir()
 OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
 
 # ---------------------------------------------------------
-# Load model + full dataset (with features + lags)
+# Load model + full dataset (your feature dataset)
 # ---------------------------------------------------------
 def load_inputs():
     model_path = os.path.join(OUTPUTS_DIR, "model_latest.pkl")
@@ -20,6 +20,10 @@ def load_inputs():
 
     model = joblib.load(model_path)
     df = pd.read_csv(data_path, parse_dates=["date"])
+
+    print(f"[forecast] Loaded model → {model_path}")
+    print(f"[forecast] Loaded dataset → {data_path}")
+    print(f"[forecast] Total rows: {len(df)}")
 
     return model, df
 
@@ -31,6 +35,8 @@ def select_forecast_rows(df):
     forecast_rows = df[df["date"] == latest_date].copy()
 
     print(f"[forecast] Forecasting for week: {latest_date.date()}")
+    print(f"[forecast] Rows for forecast: {len(forecast_rows)}")
+
     return forecast_rows
 
 # ---------------------------------------------------------
@@ -41,7 +47,10 @@ def run_forecast():
 
     # Identify feature columns
     drop_cols = [
-        "segment_id", "date", "conflict", "conflict_prob"
+        "segment_id",
+        "date",
+        "conflict",
+        "conflict_prob"  # from previous runs
     ]
     feature_cols = [c for c in df.columns if c not in drop_cols]
 
@@ -56,7 +65,6 @@ def run_forecast():
     forecast_df.to_csv(out_path, index=False)
 
     print(f"[forecast] Saved forecast → {out_path}")
-    print(f"[forecast] Rows: {len(forecast_df)}")
     print(f"[forecast] Forecast date: {forecast_df['date'].iloc[0].date()}")
 
     return forecast_df
