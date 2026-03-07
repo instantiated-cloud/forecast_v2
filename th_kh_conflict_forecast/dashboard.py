@@ -70,15 +70,16 @@ def main():
     with tab_map:
         st.header("Conflict Risk Map")
 
-        # Determine forecast date range
-        if "date" in forecast_df.columns:
-            min_date = forecast_df["date"].min().strftime("%Y-%m-%d")
-            max_date = forecast_df["date"].max().strftime("%Y-%m-%d")
+        # Determine forecast week(s) ONLY
+        forecast_dates = forecast_df["date"].dropna().unique()
 
-            if min_date == max_date:
-                st.subheader(f"Forecast for: {min_date}")
-            else:
-                st.subheader(f"Forecast Range: {min_date} → {max_date}")
+        if len(forecast_dates) == 1:
+            forecast_week = pd.to_datetime(forecast_dates[0]).strftime("%Y-%m-%d")
+            st.subheader(f"Forecast for week of: {forecast_week}")
+        else:
+            min_f = pd.to_datetime(forecast_dates.min()).strftime("%Y-%m-%d")
+            max_f = pd.to_datetime(forecast_dates.max()).strftime("%Y-%m-%d")
+            st.subheader(f"Forecast period: {min_f} → {max_f}")
 
         # Base map
         m = folium.Map(location=[14.3, 104.8], zoom_start=7)
