@@ -55,7 +55,7 @@ def main():
 
         /* MAIN APP BACKGROUND */
         div[data-testid="stAppViewContainer"] {
-            background-color: #fafafa;
+            background-color: #fafafb;
         }
 
         /* OPTIONAL: SIDEBAR BACKGROUND */
@@ -65,7 +65,7 @@ def main():
 
         /* OPTIONAL: TABS BACKGROUND */
         div[data-baseweb="tab-list"] {
-            background-color: #fafafa;
+            background-color: #fafafb;
         }
 
     </style>
