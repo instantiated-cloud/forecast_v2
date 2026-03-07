@@ -10,14 +10,13 @@ def get_base_dir():
 
 BASE_DIR = get_base_dir()
 OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
-DATA_DIR = os.path.join(BASE_DIR, "data")
 
 # ---------------------------------------------------------
 # Load model + latest feature-engineered dataset
 # ---------------------------------------------------------
 def load_inputs():
     model_path = os.path.join(OUTPUTS_DIR, "model_latest.pkl")
-    data_path = os.path.join(OUTPUTS_DIR, "features_latest.csv")
+    data_path = os.path.join(OUTPUTS_DIR, "model_input_latest.csv")  # <-- IMPORTANT
 
     model = joblib.load(model_path)
     df = pd.read_csv(data_path, parse_dates=["date"])
@@ -29,15 +28,12 @@ def load_inputs():
 # ---------------------------------------------------------
 def select_forecast_rows(df):
     """
-    We forecast ONLY the most recent week in the dataset.
-    This ensures the dashboard shows the correct forecast date.
+    Forecast ONLY the most recent week in the dataset.
     """
-
     latest_date = df["date"].max()
     forecast_rows = df[df["date"] == latest_date].copy()
 
     print(f"[forecast] Forecasting for week: {latest_date.date()}")
-
     return forecast_rows
 
 # ---------------------------------------------------------
