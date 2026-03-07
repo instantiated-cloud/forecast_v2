@@ -83,6 +83,27 @@ def main():
                 popup=f"{row['segment_id']}: {row['conflict_prob']:.2f}"
             ).add_to(m)
 
+            # Name above
+            folium.map.Marker(
+                [row["lat"] + 0.02, row["lon"]],
+                icon=folium.DivIcon(
+                    html=f"""<div style="font-size:12px; font-weight:bold; text-align:center;">
+                            {row['segment_id']}
+                            </div>"""
+                )
+            ).add_to(m)
+
+            # Number below
+            folium.map.Marker(
+                [row["lat"] - 0.02, row["lon"]],
+                icon=folium.DivIcon(
+                    html=f"""<div style="font-size:11px; color:#333; text-align:center;">
+                            {row['conflict_prob']:.2f}
+                            </div>"""
+                )
+            ).add_to(m)
+
+
         st_folium(m, width=700, height=500)
 
     # -----------------------------------------------------
