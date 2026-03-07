@@ -47,7 +47,7 @@ def run_pipeline():
 def main():
 
     st.title("Simulated Thailand–Cambodia Conflict Forecast Dashboard")
-    st.header(":red[_Prototype_] :green[v2.0]")
+    st.subheader(":red[_Prototype v2.0_]")
 
     # -----------------------------------------------------
     # Load data
@@ -191,6 +191,9 @@ def main():
 
         seg_df = combined[combined["segment_id"] == segment]
 
+        # Identify historical conflict events
+        conflict_events = seg_df[seg_df["conflict"] == 1]
+
         # Matplotlib figure
         fig, ax = plt.subplots(figsize=(10, 4))
 
@@ -212,6 +215,25 @@ def main():
             label="Forecast Probability"
         )
 
+        # Add vertical markers for historical conflict events
+        for _, row in conflict_events.iterrows():
+            ax.axvline(
+                row["date"],
+                color="red",
+                linestyle="--",
+                alpha=0.5
+            )
+            ax.text(
+                row["date"],
+                1.05,
+                row["date"].strftime("%Y-%m-%d"),
+                rotation=90,
+                fontsize=8,
+                color="red",
+                ha="center",
+                va="bottom"
+            )
+
         ax.set_title(f"Timeline for {segment}")
         ax.set_xlabel("Date")
         ax.set_ylabel("Conflict / Probability")
@@ -221,7 +243,6 @@ def main():
         plt.xticks(rotation=45)
 
         st.pyplot(fig)
-
 
     # -----------------------------------------------------
     # MODEL INSIGHTS TAB
