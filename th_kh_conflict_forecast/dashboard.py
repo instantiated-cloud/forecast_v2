@@ -122,8 +122,8 @@ def main():
         fi_png = os.path.join(OUTPUTS_DIR, "feature_importance.png")
 
         # Debug info (remove later)
-        st.write("Looking for CSV:", fi_csv, "→", os.path.exists(fi_csv))
-        st.write("Looking for PNG:", fi_png, "→", os.path.exists(fi_png))
+        # st.write("Looking for CSV:", fi_csv, "→", os.path.exists(fi_csv))
+        # st.write("Looking for PNG:", fi_png, "→", os.path.exists(fi_png))
 
         # --- CASE 1: CSV exists (new pipeline) ---
         if os.path.exists(fi_csv):
@@ -146,7 +146,7 @@ def main():
         # --- CASE 2: PNG exists (old pipeline) ---
         elif os.path.exists(fi_png):
             st.subheader("Feature Importance (PNG)")
-            st.image(fi_png, caption="Feature Importance", use_column_width=True)
+            st.image(fi_png, caption="Feature Importance", width=True)
 
         # --- CASE 3: Nothing found ---
         else:
