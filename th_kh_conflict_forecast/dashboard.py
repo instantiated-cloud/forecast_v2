@@ -81,6 +81,7 @@ def main():
             max_f = pd.to_datetime(forecast_dates.max()).strftime("%Y-%m-%d")
             st.subheader(f"Forecast period: {min_f} → {max_f}")
 
+
         # Base map
         m = folium.Map(location=[14.3, 104.8], zoom_start=7)
 
