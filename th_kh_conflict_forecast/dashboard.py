@@ -46,7 +46,7 @@ def run_pipeline():
 # ---------------------------------------------------------
 def main():
 
-    st.title("Prototype: Thailand–Cambodia Conflict Forecast Dashboard")
+    st.title("V2: Simulated Thailand–Cambodia Conflict Forecast Dashboard")
 
     # -----------------------------------------------------
     # Load data
@@ -61,7 +61,7 @@ def main():
     # Tabs for clean navigation
     # -----------------------------------------------------
     tab_map, tab_analytics, tab_insights = st.tabs(
-        ["🗺️ Map", "📊 Analytics", "🧠 Model Insights"]
+        ["🗺️ Map", "📊 Simulated Analytics", "🧠 Model Insights"]
     )
 
     # -----------------------------------------------------
@@ -89,8 +89,9 @@ def main():
                 icon=folium.DivIcon(
                     html=f"""
                     <div style="
-                        font-size: 12px;
+                        font-size: 16px;
                         font-family: Arial, sans-serif;
+                        font-weight: normal;
                         text-align: center;
                         line-height: 14px;
                         ">
@@ -106,8 +107,9 @@ def main():
                 icon=folium.DivIcon(
                     html=f"""
                     <div style="
-                        font-size: 11px;
+                        font-size: 14px;
                         font-family: Arial, sans-serif;
+                        font-weight: normal;
                         text-align: center;
                         line-height: 14px;
                         ">
@@ -151,7 +153,7 @@ def main():
     # MODEL INSIGHTS TAB
     # -----------------------------------------------------
     with tab_insights:
-        st.header("Model Insights")
+        st.header("Simulated Model Insights")
 
         # Paths
         fi_csv = os.path.join(OUTPUTS_DIR, "feature_importance.csv")
