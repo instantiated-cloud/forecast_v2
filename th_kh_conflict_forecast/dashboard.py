@@ -106,9 +106,34 @@ def main():
             max_f = pd.to_datetime(forecast_dates.max()).strftime("%Y-%m-%d")
             st.subheader(f"Forecast period: {min_f} → {max_f}")
 
+        # Create map with no base tiles
+        m = folium.Map(
+            location=[13.8, 103.6],
+            zoom_start=8,
+            tiles=None
+        )
 
-        # Base map
-        m = folium.Map(location=[14.3, 104.8], zoom_start=7)
+        # 1️⃣ Add Hybrid FIRST (this becomes the default)
+        hybrid = folium.TileLayer(
+            tiles="http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+            attr="Google Hybrid",
+            name="Satellite Hybrid",
+            control=True,
+            show=True
+        )
+        hybrid.add_to(m)
+
+        # 2️⃣ Add Street Map SECOND
+        street = folium.TileLayer(
+            "OpenStreetMap",
+            name="Street Map",
+            control=True,
+            show=False
+        )
+        street.add_to(m)
+
+        # 3️⃣ Add Layer Control
+        folium.LayerControl(collapsed=True).add_to(m)
 
         # Merge forecast + segment metadata
         merged = forecast_df.merge(segments_df, on="segment_id", how="left")
