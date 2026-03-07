@@ -146,7 +146,7 @@ def main():
         # --- CASE 2: PNG exists (old pipeline) ---
         elif os.path.exists(fi_png):
             st.subheader("Feature Importance (PNG)")
-            st.image(fi_png, caption="Feature Importance", width=True)
+            st.image(fi_png, caption="Feature Importance", use_column_width=True)
 
         # --- CASE 3: Nothing found ---
         else:
