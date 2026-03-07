@@ -194,10 +194,9 @@ def main():
         # Identify historical conflict events
         conflict_events = seg_df[seg_df["conflict"] == 1]
 
-        # Matplotlib figure
         fig, ax = plt.subplots(figsize=(10, 4))
 
-        # Plot historical conflict (0/1)
+        # Historical conflict
         ax.plot(
             seg_df["date"],
             seg_df["conflict"],
@@ -206,7 +205,7 @@ def main():
             label="Historical Conflict"
         )
 
-        # Plot forecast probability
+        # Forecast probability
         ax.plot(
             seg_df["date"],
             seg_df["forecast"],
@@ -216,33 +215,50 @@ def main():
         )
 
         # Add vertical markers for historical conflict events
-        for _, row in conflict_events.iterrows():
+        levels = 6  # number of stagger levels
+
+        for i, (_, row) in enumerate(conflict_events.iterrows()):
             ax.axvline(
                 row["date"],
                 color="red",
                 linestyle="--",
                 alpha=0.5
             )
+
+            # Center of the plot
+            y_center = 0.5
+
+            # Compute stagger level (0 to 5)
+            level = i % levels
+
+            # Spread levels evenly above/below center
+            # Example: -0.25, -0.15, -0.05, +0.05, +0.15, +0.25
+            offset = (level - (levels - 1) / 2) * 0.10
+
             ax.text(
                 row["date"],
-                1.05,
+                y_center + offset,
                 row["date"].strftime("%Y-%m-%d"),
-                rotation=90,
+                rotation=0,
                 fontsize=8,
                 color="red",
                 ha="center",
-                va="bottom"
+                va="center"
             )
+
+
+        # Move legend outside to the right
+        ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
 
         ax.set_title(f"Timeline for {segment}")
         ax.set_xlabel("Date")
         ax.set_ylabel("Conflict / Probability")
-        ax.legend()
         ax.grid(True, linestyle="--", alpha=0.4)
 
         plt.xticks(rotation=45)
 
         st.pyplot(fig)
+
 
     # -----------------------------------------------------
     # MODEL INSIGHTS TAB
