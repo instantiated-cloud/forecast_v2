@@ -1,74 +1,90 @@
 import os
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
 import joblib
-
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 
 # ---------------------------------------------------------
-# Resolve absolute paths safely
+# Resolve absolute paths
 # ---------------------------------------------------------
 def get_base_dir():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BASE_DIR = get_base_dir()
 OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
-
+os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
 # ---------------------------------------------------------
-# Save feature importance
+# Load your full dataset (the one you used to train)
 # ---------------------------------------------------------
-def save_feature_importance(model, feature_names):
-    fi = pd.DataFrame({
-        "feature": feature_names,
-        "importance": model.feature_importances_
-    }).sort_values("importance", ascending=False)
-
-    fi_path = os.path.join(OUTPUTS_DIR, "feature_importance.csv")
-    fi.to_csv(fi_path, index=False)
-    print(f"[model_training] Saved feature importance → {fi_path}")
-
+def load_dataset():
+    data_path = os.path.join(OUTPUTS_DIR, "forecast_latest.csv")  
+    # ^ This is your full dataset with features + lags
+    df = pd.read_csv(data_path, parse_dates=["date"])
+    print(f"[training] Loaded dataset → {data_path}")
+    print(f"[training] Rows: {len(df)}")
+    return df
 
 # ---------------------------------------------------------
 # Train model
 # ---------------------------------------------------------
 def train_model(df):
-    print("[model_training] Starting model training...")
 
-    # Drop non-feature columns
-    drop_cols = ["segment_id", "date", "conflict"]
-    X = df.drop(columns=[c for c in drop_cols if c in df.columns])
-    y = df["conflict_next_week"]
+    # Columns we do NOT use as features
+    drop_cols = [
+        "segment_id",
+        "date",
+        "conflict_prob",      # from previous runs
+        "conflict"            # label
+    ]
 
-    # Train/test split
+    feature_cols = [c for c in df.columns if c not in drop_cols]
+
+    X = df[feature_cols]
+    y = df["conflict"]
+
+    # Train/test split (stratified)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # Model
+    print("[training] Training RandomForest model...")
     model = RandomForestClassifier(
         n_estimators=300,
-        max_depth=None,
-        min_samples_split=2,
-        min_samples_leaf=1,
+        max_depth=12,
         random_state=42,
-        n_jobs=-1
+        class_weight="balanced"
     )
 
     model.fit(X_train, y_train)
+    print("[training] Model training complete.")
 
-    # Evaluate
-    y_pred = model.predict_proba(X_test)[:, 1]
-    auc = roc_auc_score(y_test, y_pred)
-    print(f"[model_training] Validation AUC: {auc:.4f}")
+    return model, feature_cols
 
+# ---------------------------------------------------------
+# Save model + feature dataset
+# ---------------------------------------------------------
+def save_outputs(model, df):
     # Save model
     model_path = os.path.join(OUTPUTS_DIR, "model_latest.pkl")
     joblib.dump(model, model_path)
-    print(f"[model_training] Saved model → {model_path}")
+    print(f"[training] Saved model → {model_path}")
 
-    # Save feature importance
-    save_feature_importance(model, X_train.columns)
+    # Save feature-engineered dataset
+    feature_path = os.path.join(OUTPUTS_DIR, "model_input_latest.csv")
+    df.to_csv(feature_path, index=False)
+    print(f"[training] Saved feature dataset → {feature_path}")
 
+# ---------------------------------------------------------
+# Main
+# ---------------------------------------------------------
+def run_training():
+    df = load_dataset()
+    model, feature_cols = train_model(df)
+    save_outputs(model, df)
+    print("[training] Training pipeline complete.")
     return model
+
+
+if __name__ == "__main__":
+    run_training()
