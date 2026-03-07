@@ -1,68 +1,3 @@
-# import streamlit as st
-# import pandas as pd
-# import folium
-# from streamlit_folium import st_folium
-# import matplotlib.pyplot as plt
-
-# import os
-# import streamlit as st
-
-# st.write("Current working directory:", os.getcwd())
-# st.write("Files in CWD:", os.listdir())
-
-
-# # Load data
-# forecast_df = pd.read_csv("outputs/forecast_latest.csv")
-# segments_df = pd.read_csv("data/raw/segments.csv")
-
-# st.title("Thailand–Cambodia Conflict Forecast Dashboard")
-
-# # -----------------------------
-# # MAP
-# # -----------------------------
-# st.header("Conflict Risk Map")
-
-# m = folium.Map(location=[14.3, 104.8], zoom_start=7)
-# merged = forecast_df.merge(segments_df, on="segment_id")
-
-# for _, row in merged.iterrows():
-#     folium.CircleMarker(
-#         location=[row["lat"], row["lon"]],
-#         radius=8,
-#         color="red",
-#         fill=True,
-#         fill_opacity=row["conflict_prob"],
-#         popup=f"{row['segment_id']}: {row['conflict_prob']:.2f}"
-#     ).add_to(m)
-
-# st_folium(m, width=700, height=500)
-
-# # -----------------------------
-# # BAR CHART
-# # -----------------------------
-# st.header("Risk by Segment")
-
-# risk = forecast_df.groupby("segment_id")["conflict_prob"].mean().sort_values()
-
-# fig, ax = plt.subplots(figsize=(8,6))
-# risk.plot(kind="barh", ax=ax, color="firebrick")
-# st.pyplot(fig)
-
-# # -----------------------------
-# # TIMELINE
-# # -----------------------------
-# st.header("Segment Timeline")
-
-# segment = st.selectbox("Choose a segment:", risk.index)
-
-# seg_df = forecast_df[forecast_df["segment_id"] == segment]
-
-# fig2, ax2 = plt.subplots(figsize=(10,4))
-# ax2.plot(seg_df["date"], seg_df["conflict_prob"], label="Predicted Risk")
-# ax2.scatter(seg_df["date"], seg_df["conflict"], color="red", label="Actual Conflict")
-# ax2.legend()
-# st.pyplot(fig2)
-
 import os
 import subprocess
 import pandas as pd
@@ -76,7 +11,6 @@ import matplotlib.pyplot as plt
 # Resolve absolute paths safely for Streamlit Cloud
 # ---------------------------------------------------------
 def get_base_dir():
-    # Works in Codespaces, Streamlit Cloud, local Python, etc.
     return os.path.dirname(os.path.abspath(__file__))
 
 BASE_DIR = get_base_dir()
@@ -101,12 +35,10 @@ def load_forecast():
 
 
 # ---------------------------------------------------------
-# Run pipeline on demand
+# Run pipeline on demand (currently hidden)
 # ---------------------------------------------------------
 def run_pipeline():
-    st.sidebar.write("Running pipeline…")
     subprocess.run(["python", os.path.join(BASE_DIR, "run_pipeline.py")])
-    st.sidebar.success("Pipeline complete. Refresh the page.")
 
 
 # ---------------------------------------------------------
@@ -116,13 +48,9 @@ def main():
 
     st.title("Thailand–Cambodia Conflict Forecast Dashboard")
 
-    # Sidebar controls
-    st.sidebar.header("Controls")
-    if st.sidebar.button("Run Forecast Pipeline"):
-        run_pipeline()
-        st.stop()
-
+    # -----------------------------------------------------
     # Load data
+    # -----------------------------------------------------
     forecast_df = load_forecast()
     if forecast_df is None:
         st.stop()
@@ -130,52 +58,92 @@ def main():
     segments_df = pd.read_csv(SEGMENTS_FILE)
 
     # -----------------------------------------------------
-    # MAP
+    # Tabs for clean navigation
     # -----------------------------------------------------
-    st.header("Conflict Risk Map")
-
-    m = folium.Map(location=[14.3, 104.8], zoom_start=7)
-    merged = forecast_df.merge(segments_df, on="segment_id", how="left")
-
-    for _, row in merged.iterrows():
-        folium.CircleMarker(
-            location=[row["lat"], row["lon"]],
-            radius=8,
-            color="red",
-            fill=True,
-            fill_opacity=row["conflict_prob"],
-            popup=f"{row['segment_id']}: {row['conflict_prob']:.2f}"
-        ).add_to(m)
-
-    st_folium(m, width=700, height=500)
+    tab_map, tab_analytics, tab_insights = st.tabs(
+        ["🗺️ Map", "📊 Analytics", "🧠 Model Insights"]
+    )
 
     # -----------------------------------------------------
-    # BAR CHART
+    # MAP TAB
     # -----------------------------------------------------
-    st.header("Risk by Segment")
+    with tab_map:
+        st.header("Conflict Risk Map")
 
-    risk = forecast_df.groupby("segment_id")["conflict_prob"].mean().sort_values()
+        m = folium.Map(location=[14.3, 104.8], zoom_start=7)
+        merged = forecast_df.merge(segments_df, on="segment_id", how="left")
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    risk.plot(kind="barh", ax=ax, color="firebrick")
-    ax.set_title("Predicted Conflict Probability by Segment")
-    ax.set_xlabel("Probability")
-    st.pyplot(fig)
+        for _, row in merged.iterrows():
+            folium.CircleMarker(
+                location=[row["lat"], row["lon"]],
+                radius=8,
+                color="red",
+                fill=True,
+                fill_opacity=row["conflict_prob"],
+                popup=f"{row['segment_id']}: {row['conflict_prob']:.2f}"
+            ).add_to(m)
+
+        st_folium(m, width=700, height=500)
 
     # -----------------------------------------------------
-    # TIMELINE VIEWER
+    # ANALYTICS TAB
     # -----------------------------------------------------
-    st.header("Segment Timeline")
+    with tab_analytics:
+        st.header("Risk by Segment")
 
-    segment = st.selectbox("Choose a segment:", risk.index)
-    seg_df = forecast_df[forecast_df["segment_id"] == segment]
+        risk = forecast_df.groupby("segment_id")["conflict_prob"].mean().sort_values()
 
-    fig2, ax2 = plt.subplots(figsize=(10, 4))
-    ax2.plot(seg_df["date"], seg_df["conflict_prob"], label="Predicted Risk")
-    ax2.scatter(seg_df["date"], seg_df["conflict"], color="red", label="Actual Conflict")
-    ax2.legend()
-    ax2.set_title(f"Timeline for {segment}")
-    st.pyplot(fig2)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        risk.plot(kind="barh", ax=ax, color="firebrick")
+        ax.set_title("Predicted Conflict Probability by Segment")
+        ax.set_xlabel("Probability")
+        st.pyplot(fig)
+
+        st.header("Segment Timeline")
+
+        segment = st.selectbox("Choose a segment:", risk.index)
+        seg_df = forecast_df[forecast_df["segment_id"] == segment]
+
+        fig2, ax2 = plt.subplots(figsize=(10, 4))
+        ax2.plot(seg_df["date"], seg_df["conflict_prob"], label="Predicted Risk")
+        ax2.scatter(seg_df["date"], seg_df["conflict"], color="red", label="Actual Conflict")
+        ax2.legend()
+        ax2.set_title(f"Timeline for {segment}")
+        st.pyplot(fig2)
+
+    # -----------------------------------------------------
+    # MODEL INSIGHTS TAB
+    # -----------------------------------------------------
+    with tab_insights:
+        st.header("Model Insights")
+
+        # Feature importance file (optional)
+        fi_path = os.path.join(OUTPUTS_DIR, "feature_importance.csv")
+
+        if os.path.exists(fi_path):
+            fi_df = pd.read_csv(fi_path)
+
+            st.subheader("Feature Importance")
+            fig3, ax3 = plt.subplots(figsize=(8, 6))
+            fi_df.sort_values("importance", ascending=True).plot(
+                x="feature", y="importance", kind="barh", ax=ax3, color="steelblue"
+            )
+            st.pyplot(fig3)
+        else:
+            st.info("Feature importance file not found. Generate it in the pipeline.")
+
+        st.subheader("Model Summary")
+        st.write("""
+        - The model is a Random Forest classifier.
+        - It predicts conflict probability for each border segment.
+        - It uses lagged features (previous week’s activity) to forecast future risk.
+        - Key drivers typically include:
+            - Troop movements
+            - Drone activity
+            - Sentiment score
+            - Article count
+            - Previous conflict
+        """)
 
 
 if __name__ == "__main__":
