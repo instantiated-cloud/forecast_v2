@@ -59,6 +59,26 @@ def main():
 
     segments_df = pd.read_csv(SEGMENTS_FILE)
 
+    # Step 2 — Coordinate fixes
+    coordinate_fixes = {
+        "PREAH_VIHEAR_TEMPLE": {"lat": 14.3904, "lon": 104.6802},
+        "TA_MUEN_THOM_TEMPLE": {"lat": 14.3554, "lon": 103.2585},
+        "TA_KRABEY_TEMPLE": {"lat": 14.3528, "lon": 103.3733}, # Incorrect location
+        "OSMACH_CHECKPOINT": {"lat": 14.4340, "lon": 103.6997},
+        "CHONG_CHOM_CHECKPOINT": {"lat": 14.4349, "lon": 103.7001},
+        "ARANYAPRATHET_POIPET": {"lat": 13.6615, "lon": 102.5504},
+        "PHANOM_DONG_RAK_RIDGE": {"lat": 14.3525, "lon": 103.3737},
+        "BAN_KRUAT": {"lat": 14.3378, "lon": 103.1749},
+        "KANTHARALAK": {"lat": 14.4604, "lon": 104.7183},
+        "SAMRAONG": {"lat": 14.3028, "lon": 103.6260},
+    }
+
+    # Step 3 — Apply fixes
+    for seg, fix in coordinate_fixes.items():
+        mask = segments_df["segment_id"] == seg
+        segments_df.loc[mask, "lat"] = fix["lat"]
+        segments_df.loc[mask, "lon"] = fix["lon"]
+
     # -----------------------------------------------------
     # Tabs for clean navigation
     # -----------------------------------------------------
