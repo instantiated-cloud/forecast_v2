@@ -204,7 +204,7 @@ def main():
             position: fixed;
             bottom: 30px;
             left: 30px;
-            width: 150px;
+            width: 155px;
             background-color: white;
             border: 2px solid grey;
             border-radius: 8px;
