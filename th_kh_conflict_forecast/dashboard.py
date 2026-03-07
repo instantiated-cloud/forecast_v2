@@ -161,28 +161,66 @@ def main():
     # -----------------------------------------------------
     # ANALYTICS TAB
     # -----------------------------------------------------
-    with tab_analytics:
-        st.header("Risk by Segment")
-
-        risk = forecast_df.groupby("segment_id")["conflict_prob"].mean().sort_values()
-
-        fig, ax = plt.subplots(figsize=(8, 6))
-        risk.plot(kind="barh", ax=ax, color="firebrick")
-        ax.set_title("Predicted Conflict Probability by Segment")
-        ax.set_xlabel("Probability")
-        st.pyplot(fig)
-
+    with tab_timeline:
         st.header("Segment Timeline")
 
-        segment = st.selectbox("Choose a segment:", risk.index)
-        seg_df = forecast_df[forecast_df["segment_id"] == segment]
+        # Load historical dataset
+        history_path = os.path.join(OUTPUTS_DIR, "model_input_latest.csv")
+        history_df = pd.read_csv(history_path, parse_dates=["date"])
 
-        fig2, ax2 = plt.subplots(figsize=(10, 4))
-        ax2.plot(seg_df["date"], seg_df["conflict_prob"], label="Predicted Risk")
-        ax2.scatter(seg_df["date"], seg_df["conflict"], color="red", label="Actual Conflict")
-        ax2.legend()
-        ax2.set_title(f"Timeline for {segment}")
-        st.pyplot(fig2)
+        # Load forecast dataset
+        forecast_path = os.path.join(OUTPUTS_DIR, "forecast_latest.csv")
+        forecast_df = pd.read_csv(forecast_path, parse_dates=["date"])
+
+        # Keep only needed columns
+        history_df = history_df[["date", "segment_id", "conflict"]]
+        forecast_df = forecast_df[["date", "segment_id", "conflict_prob"]]
+        forecast_df = forecast_df.rename(columns={"conflict_prob": "forecast"})
+
+        # Merge history + forecast
+        combined = history_df.merge(
+            forecast_df,
+            on=["date", "segment_id"],
+            how="outer"
+        ).sort_values("date")
+
+        # Segment selector
+        segment_list = combined["segment_id"].unique()
+        segment = st.selectbox("Select segment:", segment_list)
+
+        seg_df = combined[combined["segment_id"] == segment]
+
+        # Matplotlib figure
+        fig, ax = plt.subplots(figsize=(10, 4))
+
+        # Plot historical conflict (0/1)
+        ax.plot(
+            seg_df["date"],
+            seg_df["conflict"],
+            marker="o",
+            color="gray",
+            label="Historical Conflict"
+        )
+
+        # Plot forecast probability
+        ax.plot(
+            seg_df["date"],
+            seg_df["forecast"],
+            marker="o",
+            color="red",
+            label="Forecast Probability"
+        )
+
+        ax.set_title(f"Timeline for {segment}")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Conflict / Probability")
+        ax.legend()
+        ax.grid(True, linestyle="--", alpha=0.4)
+
+        plt.xticks(rotation=45)
+
+        st.pyplot(fig)
+
 
     # -----------------------------------------------------
     # MODEL INSIGHTS TAB
