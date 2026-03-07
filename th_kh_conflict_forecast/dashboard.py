@@ -6,6 +6,7 @@ import folium
 from streamlit_folium import st_folium
 import matplotlib.pyplot as plt
 
+st.set_page_config(layout="wide")
 
 # ---------------------------------------------------------
 # Resolve absolute paths safely for Streamlit Cloud
@@ -298,7 +299,7 @@ def main():
         plt.xticks(rotation=45)
 
         ax.set_yticks([0, 1])
-        
+
         st.pyplot(fig)
 
 
