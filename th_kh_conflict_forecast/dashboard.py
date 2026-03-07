@@ -46,7 +46,7 @@ def run_pipeline():
 # ---------------------------------------------------------
 def main():
 
-    st.title("V2: Simulated Thailand–Cambodia Conflict Forecast Dashboard")
+    st.title("Prototype: Simulated Thailand–Cambodia Conflict Forecast Dashboard V2")
 
     # -----------------------------------------------------
     # Load data
@@ -231,6 +231,20 @@ def main():
         # Paths
         fi_csv = os.path.join(OUTPUTS_DIR, "feature_importance.csv")
         fi_png = os.path.join(OUTPUTS_DIR, "feature_importance.png")
+        
+        # Model summary
+        st.subheader("Model Summary")
+        st.write("""
+        - The model is a Random Forest classifier.
+        - It predicts conflict probability for each border segment.
+        - It uses lagged features (previous week’s activity) to forecast future risk.
+        - Key drivers typically include:
+            - Troop movements
+            - Drone activity
+            - Sentiment score
+            - Article count
+            - Previous conflict
+        """)
 
         # Debug info (remove later)
         # st.write("Looking for CSV:", fi_csv, "→", os.path.exists(fi_csv))
@@ -263,19 +277,7 @@ def main():
         else:
             st.info("No feature importance file found. Run the pipeline first.")
 
-        # Model summary
-        st.subheader("Model Summary")
-        st.write("""
-        - The model is a Random Forest classifier.
-        - It predicts conflict probability for each border segment.
-        - It uses lagged features (previous week’s activity) to forecast future risk.
-        - Key drivers typically include:
-            - Troop movements
-            - Drone activity
-            - Sentiment score
-            - Article count
-            - Previous conflict
-        """)
+
 
 
 if __name__ == "__main__":
