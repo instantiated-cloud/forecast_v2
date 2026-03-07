@@ -48,7 +48,7 @@ def run_pipeline():
 def main():
 
     st.title("Simulated Thailand–Cambodia Conflict Forecast Dashboard")
-    st.subheader(":red[_Prototype v2.0_]")
+    st.subheader(":red[_Prototype v4.0_]")
 
     st.markdown("""
     <style>
