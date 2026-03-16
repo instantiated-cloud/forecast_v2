@@ -18,45 +18,6 @@ Interactive Streamlit dashboard for visualization and analysis
 The system is designed for operational early‑warning workflows, enabling analysts to explore historical patterns, inspect feature behavior, and monitor forecasted conflict probabilities.
 
 
-🗂️ Project Structure
-th_kh_conflict_forecast/
-│
-├── requirements.txt             # Requirments for Streamlit
-│
-├── dashboard.py             	 # Run program to Streamlit
-│
-├── run_pipeline.py              # Main end-to-end pipeline runner
-│
-├── src/
-│   ├── generate_synthetic.py    # Generate synthetic data with randomizer for tests
-│   ├── feature_engineering.py   # Build features (lags, rolling, encoding)
-│   ├── model_training.py        # Train model + save artifacts
-│   ├── forecast.py              # Generate forecast for following week
-│   ├── preprocess.py            # Clean up data with merge
-│   ├── visualize.py             # Creates map.html, forecast_bar.png, and feature_importance.png
-│   └── load_data.py             # Loads testing data
-│
-├── outputs/
-│   ├── model_latest.pkl         # Trained model
-│   ├── model_input_latest.csv   # Feature-engineered dataset
-│   └── forecast_latest.csv      # Latest forecast output
-│
-├── data/
-│   ├── processed/
-│   │   ├── merged_features.csv		# Output from prepreocess
-│   │   └── merged_features_lagged.csv	# Output from prepreocess
-│   │
-│   └── raw/
-│       ├── displacement.csv		# Displacement of people along segments
-│       ├── incidents.csv		# Incidents along segments
-│       ├── military_activity.csv	# Activity along segments
-│       ├── news_sentiment.csv		# New and social media sentiments along segments
-│       ├── segments.csv		# 10 chosen segments near the border
-│       └── trade_migration.csv		# Trade data across borders
-│ 
-└── README.md
-
-
 🚀 Running the Full Pipeline
 Run the entire workflow with:
 
